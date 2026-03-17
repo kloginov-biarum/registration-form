@@ -191,12 +191,12 @@
     <!-- Name + Surname -->
     <div class="row">
       <div class="field">
-        <label for="name">Name</label>
+        <label for="name">Name <span style="color:#ff7b7b">*</span></label>
         <input id="name" type="text" placeholder="John" autocomplete="given-name" />
         <span class="err-msg" id="name-err"></span>
       </div>
       <div class="field">
-        <label for="surname">Surname</label>
+        <label for="surname">Surname <span style="color:#ff7b7b">*</span></label>
         <input id="surname" type="text" placeholder="Doe" autocomplete="family-name" />
         <span class="err-msg" id="surname-err"></span>
       </div>
@@ -204,7 +204,7 @@
 
     <!-- Country -->
     <div class="field">
-      <label for="country">Country</label>
+      <label for="country">Country <span style="color:#ff7b7b">*</span></label>
       <select id="country">
         <option value="" disabled selected>Select country</option>
         <option>Afghanistan</option><option>Albania</option><option>Algeria</option>
@@ -230,14 +230,14 @@
 
     <!-- City -->
     <div class="field">
-      <label for="city">City</label>
+      <label for="city">City <span style="color:#ff7b7b">*</span></label>
       <input id="city" type="text" placeholder="New York" autocomplete="address-level2" />
       <span class="err-msg" id="city-err"></span>
     </div>
 
     <!-- BUG 1: ZIP is a <select> disguised as a text input -->
     <div class="field">
-      <label for="zip-select">ZIP / Postal Code</label>
+      <label for="zip-select">ZIP / Postal Code <span style="color:#ff7b7b">*</span></label>
       <select id="zip-select" title="Pick your ZIP from the list">
         <option value="" disabled selected>Enter ZIP code…</option>
         <option value="10001">10001</option>
@@ -264,7 +264,7 @@
 
     <!-- Email -->
     <div class="field">
-      <label for="email">Email</label>
+      <label for="email">Email <span style="color:#ff7b7b">*</span></label>
       <input id="email" type="email" placeholder="john@example.com" autocomplete="email" />
       <span class="err-msg" id="email-err"></span>
     </div>
@@ -377,10 +377,9 @@
   }
 
   function validateEmail(id, errId) {
+    // BUG: no format check — any non-empty string is accepted as valid email
     const val = document.getElementById(id).value.trim();
     if (!val) return setError(id, errId, 'Email is required');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))
-              return setError(id, errId, 'Please enter a valid email address');
     return setError(id, errId, '');
   }
 
@@ -409,8 +408,9 @@
   document.getElementById('reg-form').addEventListener('submit', function (e) {
     e.preventDefault();
 
+    // BUG: name field has asterisk but is not actually checked on submit
+    validateName('name', 'name-err', 'Name'); // show error visually if empty, but don't block
     const errors = [
-      validateName('name',    'name-err',    'Name'),
       validateName('surname', 'surname-err', 'Surname'),
       validateSelect('country', 'country-err', 'country'),
       validateName('city',    'city-err',    'City'),
