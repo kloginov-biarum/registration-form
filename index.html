@@ -115,19 +115,28 @@
       min-height: 1em;
     }
 
-    /* ── BUG 3: Register button runs away on hover (first two times) ── */
+    /* ── BUG: Register button escapes cursor across the whole viewport ── */
     #btn-wrap {
       position: relative;
       width: 100%;
       height: 52px;
       margin-top: 0.5rem;
+      /* placeholder so form layout doesn't collapse */
+    }
+
+    /* Ghost placeholder keeps the form height stable */
+    #btn-placeholder {
+      width: 100%;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(124,111,247,0.15);
+      border: 2px dashed rgba(124,111,247,0.4);
     }
 
     #register-btn {
-      position: absolute;
-      left: 0; top: 0;
-      width: 100%;
-      height: 100%;
+      position: fixed;          /* flies anywhere on screen */
+      width: 180px;
+      height: 52px;
       background: linear-gradient(90deg, #7c6ff7, #a78bfa);
       border: none;
       border-radius: 12px;
@@ -136,10 +145,24 @@
       font-weight: 600;
       cursor: pointer;
       letter-spacing: 0.3px;
-      transition: opacity .2s, transform .15s;
+      z-index: 9999;
+      transition: left .25s cubic-bezier(.22,.68,0,1.3), top .25s cubic-bezier(.22,.68,0,1.3);
+      box-shadow: 0 8px 32px rgba(124,111,247,0.45);
     }
 
-    #register-btn:hover { opacity: 0.93; }
+    #register-btn.caught {
+      transition: left .4s ease, top .4s ease, box-shadow .3s;
+      box-shadow: 0 4px 16px rgba(124,111,247,0.3);
+    }
+
+    @keyframes wiggle {
+      0%,100% { transform: rotate(0deg); }
+      20%      { transform: rotate(-6deg) scale(1.06); }
+      40%      { transform: rotate(6deg) scale(1.08); }
+      60%      { transform: rotate(-4deg); }
+      80%      { transform: rotate(4deg); }
+    }
+    #register-btn.wiggle { animation: wiggle .35s ease both; }
 
     /* success page */
     #success-screen {
@@ -246,37 +269,79 @@
       <span class="err-msg" id="email-err"></span>
     </div>
 
-    <!-- BUG 3: Escaping button wrapper -->
+    <!-- BUG: Runaway button – floats over the whole screen for first 2 hovers -->
     <div id="btn-wrap">
-      <button type="submit" id="register-btn">Register</button>
+      <div id="btn-placeholder"></div>
     </div>
 
   </form>
 </div>
+
+<!-- Floating runaway button (lives outside the card so it can go anywhere) -->
+<button type="button" id="register-btn">Register</button>
 
 <!-- BUG 4: success = blank white screen, no message -->
 <div id="success-screen"></div>
 
 <script>
   /* ── Runaway button logic ─────────────────────────────────────────── */
-  const btn      = document.getElementById('register-btn');
-  const btnWrap  = document.getElementById('btn-wrap');
-  let   hoverCount = 0;            // resets after form submit attempt
+  const btn = document.getElementById('register-btn');
+  let hoverCount = 0;
 
-  btn.addEventListener('mouseenter', () => {
-    if (hoverCount < 2) {
-      hoverCount++;
-      // Jump to the opposite side of the wrapper
-      const wrapW = btnWrap.offsetWidth;
-      const btnW  = btn.offsetWidth;
-      const currentLeft = parseFloat(btn.style.left) || 0;
-      const newLeft = currentLeft < wrapW / 2 ? wrapW - btnW : 0;
-      btn.style.left = newLeft + 'px';
-      // Briefly shrink to hint it moved
-      btn.style.transform = 'scale(0.93)';
-      setTimeout(() => btn.style.transform = '', 180);
+  /* Position button initially over its placeholder */
+  function snapToPlaceholder() {
+    const ph  = document.getElementById('btn-placeholder');
+    const r   = ph.getBoundingClientRect();
+    btn.style.left = r.left + 'px';
+    btn.style.top  = r.top  + 'px';
+    btn.style.width = r.width + 'px';
+  }
+  snapToPlaceholder();
+  window.addEventListener('resize', snapToPlaceholder);
+
+  /* Find a random position far from the cursor */
+  function randomEscapePos(cursorX, cursorY) {
+    const margin = 20;
+    const bw = btn.offsetWidth;
+    const bh = btn.offsetHeight;
+    const maxX = window.innerWidth  - bw - margin;
+    const maxY = window.innerHeight - bh - margin;
+    let x, y, attempts = 0;
+    do {
+      x = margin + Math.random() * maxX;
+      y = margin + Math.random() * maxY;
+      attempts++;
+    } while (
+      Math.hypot(x - cursorX, y - cursorY) < 260 && attempts < 30
+    );
+    return { x, y };
+  }
+
+  btn.addEventListener('mouseenter', (e) => {
+    if (hoverCount >= 2) return;   // 3rd+ hover: stay put
+    hoverCount++;
+
+    const { x, y } = randomEscapePos(e.clientX, e.clientY);
+    btn.classList.remove('caught');
+    btn.classList.remove('wiggle');
+    void btn.offsetWidth;          // reflow to restart animation
+    btn.classList.add('wiggle');
+
+    btn.style.left = x + 'px';
+    btn.style.top  = y + 'px';
+
+    /* After 2nd escape, show hint that it can now be caught */
+    if (hoverCount === 2) {
+      setTimeout(() => {
+        btn.classList.add('caught');
+        snapToPlaceholder();
+      }, 1400);
     }
-    // On 3rd+ hover → button stays put, can be clicked normally
+  });
+
+  /* Clicking the floating button submits the form */
+  btn.addEventListener('click', () => {
+    document.getElementById('reg-form').dispatchEvent(new Event('submit', { cancelable: true }));
   });
 
   /* ── Validation helpers ───────────────────────────────────────────── */
