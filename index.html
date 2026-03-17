@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+      padding: 2rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 2.5rem 2.8rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+      animation: fadeUp .5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 1.75rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1.15rem;
+    }
+
+    label {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    input, select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 0.7rem 0.95rem;
+      color: #fff;
+      font-size: 0.93rem;
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select { cursor: pointer; }
+
+    select option {
+      background: #302b63;
+      color: #fff;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.25); }
+
+    input:focus, select:focus {
+      border-color: #7c6ff7;
+      box-shadow: 0 0 0 3px rgba(124,111,247,0.25);
+    }
+
+    input.error, select.error {
+      border-color: #ff5b5b;
+      box-shadow: 0 0 0 3px rgba(255,91,91,0.2);
+    }
+
+    .err-msg {
+      color: #ff7b7b;
+      font-size: 0.72rem;
+      margin-top: 0.3rem;
+      min-height: 1em;
+    }
+
+    /* ── BUG 3: Register button runs away on hover (first two times) ── */
+    #btn-wrap {
+      position: relative;
+      width: 100%;
+      height: 52px;
+      margin-top: 0.5rem;
+    }
+
+    #register-btn {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #7c6ff7, #a78bfa);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity .2s, transform .15s;
+    }
+
+    #register-btn:hover { opacity: 0.93; }
+
+    /* success page */
+    #success-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #fff; /* BUG 4: plain white, no content */
+    }
+
+    /* ZIP dropdown styled to look like normal input */
+    #zip-select {
+      /* looks like a text field but is a <select> */
+      color: rgba(255,255,255,0.6);
+    }
+    #zip-select.has-value { color: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Create Account</h1>
+  <p class="subtitle">Fill in the details below to get started</p>
+
+  <form id="reg-form" novalidate>
+
+    <!-- Name + Surname -->
+    <div class="row">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="John" autocomplete="given-name" />
+        <span class="err-msg" id="name-err"></span>
+      </div>
+      <div class="field">
+        <label for="surname">Surname</label>
+        <input id="surname" type="text" placeholder="Doe" autocomplete="family-name" />
+        <span class="err-msg" id="surname-err"></span>
+      </div>
+    </div>
+
+    <!-- Country -->
+    <div class="field">
+      <label for="country">Country</label>
+      <select id="country">
+        <option value="" disabled selected>Select country</option>
+        <option>Afghanistan</option><option>Albania</option><option>Algeria</option>
+        <option>Argentina</option><option>Australia</option><option>Austria</option>
+        <option>Belgium</option><option>Brazil</option><option>Canada</option>
+        <option>Chile</option><option>China</option><option>Colombia</option>
+        <option>Croatia</option><option>Czech Republic</option><option>Denmark</option>
+        <option>Egypt</option><option>Finland</option><option>France</option>
+        <option>Germany</option><option>Greece</option><option>Hungary</option>
+        <option>India</option><option>Indonesia</option><option>Ireland</option>
+        <option>Israel</option><option>Italy</option><option>Japan</option>
+        <option>Mexico</option><option>Netherlands</option><option>New Zealand</option>
+        <option>Nigeria</option><option>Norway</option><option>Pakistan</option>
+        <option>Peru</option><option>Philippines</option><option>Poland</option>
+        <option>Portugal</option><option>Romania</option><option>Russia</option>
+        <option>Saudi Arabia</option><option>South Africa</option><option>South Korea</option>
+        <option>Spain</option><option>Sweden</option><option>Switzerland</option>
+        <option>Turkey</option><option>Ukraine</option><option>United Kingdom</option>
+        <option>United States</option><option>Vietnam</option>
+      </select>
+      <span class="err-msg" id="country-err"></span>
+    </div>
+
+    <!-- City -->
+    <div class="field">
+      <label for="city">City</label>
+      <input id="city" type="text" placeholder="New York" autocomplete="address-level2" />
+      <span class="err-msg" id="city-err"></span>
+    </div>
+
+    <!-- BUG 1: ZIP is a <select> disguised as a text input -->
+    <div class="field">
+      <label for="zip-select">ZIP / Postal Code</label>
+      <select id="zip-select" title="Pick your ZIP from the list">
+        <option value="" disabled selected>Enter ZIP code…</option>
+        <option value="10001">10001</option>
+        <option value="10002">10002</option>
+        <option value="20001">20001</option>
+        <option value="30301">30301</option>
+        <option value="33101">33101</option>
+        <option value="60601">60601</option>
+        <option value="77001">77001</option>
+        <option value="85001">85001</option>
+        <option value="90001">90001</option>
+        <option value="94101">94101</option>
+        <option value="98101">98101</option>
+        <option value="E1 6RF">E1 6RF</option>
+        <option value="SW1A 1AA">SW1A 1AA</option>
+        <option value="EC1A 1BB">EC1A 1BB</option>
+        <option value="75001">75001</option>
+        <option value="10115">10115</option>
+        <option value="00100">00100</option>
+        <option value="1010">1010</option>
+      </select>
+      <span class="err-msg" id="zip-err"></span>
+    </div>
+
+    <!-- Email -->
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="john@example.com" autocomplete="email" />
+      <span class="err-msg" id="email-err"></span>
+    </div>
+
+    <!-- BUG 3: Escaping button wrapper -->
+    <div id="btn-wrap">
+      <button type="submit" id="register-btn">Register</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- BUG 4: success = blank white screen, no message -->
+<div id="success-screen"></div>
+
+<script>
+  /* ── Runaway button logic ─────────────────────────────────────────── */
+  const btn      = document.getElementById('register-btn');
+  const btnWrap  = document.getElementById('btn-wrap');
+  let   hoverCount = 0;            // resets after form submit attempt
+
+  btn.addEventListener('mouseenter', () => {
+    if (hoverCount < 2) {
+      hoverCount++;
+      // Jump to the opposite side of the wrapper
+      const wrapW = btnWrap.offsetWidth;
+      const btnW  = btn.offsetWidth;
+      const currentLeft = parseFloat(btn.style.left) || 0;
+      const newLeft = currentLeft < wrapW / 2 ? wrapW - btnW : 0;
+      btn.style.left = newLeft + 'px';
+      // Briefly shrink to hint it moved
+      btn.style.transform = 'scale(0.93)';
+      setTimeout(() => btn.style.transform = '', 180);
+    }
+    // On 3rd+ hover → button stays put, can be clicked normally
+  });
+
+  /* ── Validation helpers ───────────────────────────────────────────── */
+  function setError(fieldId, errId, msg) {
+    const el  = document.getElementById(fieldId);
+    const err = document.getElementById(errId);
+    if (msg) {
+      el.classList.add('error');
+      err.textContent = msg;
+    } else {
+      el.classList.remove('error');
+      err.textContent = '';
+    }
+    return !!msg;
+  }
+
+  function validateName(id, errId, label) {
+    const val = document.getElementById(id).value.trim();
+    if (!val)             return setError(id, errId, `${label} is required`);
+    if (val.length < 2)   return setError(id, errId, `${label} must be at least 2 characters`);
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(val))
+                          return setError(id, errId, `${label} may only contain letters`);
+    return setError(id, errId, '');
+  }
+
+  function validateSelect(id, errId, label) {
+    const val = document.getElementById(id).value;
+    if (!val) return setError(id, errId, `Please select a ${label}`);
+    const el  = document.getElementById(id);
+    el.classList.remove('error');
+    document.getElementById(errId).textContent = '';
+    return false; // no error
+  }
+
+  function validateEmail(id, errId) {
+    const val = document.getElementById(id).value.trim();
+    if (!val) return setError(id, errId, 'Email is required');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))
+              return setError(id, errId, 'Please enter a valid email address');
+    return setError(id, errId, '');
+  }
+
+  /* ZIP: since it's a <select> disguised as text input, validate same way */
+  function validateZip() {
+    return validateSelect('zip-select', 'zip-err', 'ZIP code');
+  }
+
+  /* ── Live feedback (clear error as user corrects) ─────────────────── */
+  ['name','surname','city','email'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (document.getElementById(id + '-err').textContent) {
+        // re-run validation silently
+        if (id === 'email') validateEmail(id, id + '-err');
+        else validateName(id, id + '-err', id.charAt(0).toUpperCase() + id.slice(1));
+      }
+    });
+  });
+
+  document.getElementById('zip-select').addEventListener('change', function () {
+    this.classList.toggle('has-value', !!this.value);
+    if (document.getElementById('zip-err').textContent) validateZip();
+  });
+
+  /* ── Form submit ──────────────────────────────────────────────────── */
+  document.getElementById('reg-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const errors = [
+      validateName('name',    'name-err',    'Name'),
+      validateName('surname', 'surname-err', 'Surname'),
+      validateSelect('country', 'country-err', 'country'),
+      validateName('city',    'city-err',    'City'),
+      validateZip(),
+      validateEmail('email',  'email-err'),
+    ];
+
+    if (errors.some(Boolean)) return;   // stop if any error
+
+    // BUG 4: show blank white screen with zero content
+    document.getElementById('success-screen').style.display = 'block';
+    document.querySelector('.card').style.display = 'none';
+  });
+</script>
+</body>
+</html>
